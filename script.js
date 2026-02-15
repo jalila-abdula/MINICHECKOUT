@@ -8,7 +8,6 @@ const products = [
 ];
 
 let cart = [];
-
 const productList = document.getElementById("productList");
 
 products.forEach(p => {
@@ -20,9 +19,7 @@ products.forEach(p => {
           <h6>${p.name}</h6>
           <small class="text-muted">${p.category}</small>
           <p class="mt-2">₱${p.price}</p>
-          <button class="btn btn-sm btn-primary mt-auto" onclick="addToCart(${p.id})">
-            Add to Cart
-          </button>
+          <button class="btn btn-sm btn-primary mt-auto" onclick="addToCart(${p.id})">Add to Cart</button>
         </div>
       </div>
     </div>`;
@@ -57,20 +54,14 @@ function clearCart() {
 
 function computeTotals() {
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-
   const discount = subtotal >= 1000 ? subtotal * 0.10 : 0;
-
   const deliveryMethod = document.getElementById("delivery").value;
-
   let shipping = 0;
   if (deliveryMethod === "Delivery") {
     shipping = subtotal >= 500 ? 0 : 80;
   }
-
   const tax = (subtotal - discount) * 0.12;
-
   const total = subtotal - discount + tax + shipping;
-
   return { subtotal, discount, shipping, tax, total };
 }
 
@@ -95,7 +86,6 @@ function renderCart() {
   });
 
   const t = computeTotals();
-
   document.getElementById("summary").innerHTML = `
     <p>Subtotal: ₱${t.subtotal.toFixed(2)}</p>
     <p>Discount: −₱${t.discount.toFixed(2)}</p>
@@ -105,17 +95,12 @@ function renderCart() {
     <h5>Total: ₱${t.total.toFixed(2)}</h5>`;
 }
 
-
 const delivery = document.getElementById("delivery");
-
 delivery.addEventListener("change", () => {
   const addressGroup = document.getElementById("addressGroup");
-
   addressGroup.classList.toggle("d-none", delivery.value !== "Delivery");
-
   renderCart(); 
 });
-
 
 document.getElementById("checkoutForm").addEventListener("submit", e => {
   e.preventDefault();
@@ -126,7 +111,6 @@ document.getElementById("checkoutForm").addEventListener("submit", e => {
   }
 
   const form = e.target;
-
   if (!form.checkValidity()) {
     form.classList.add("was-validated");
     return;
@@ -135,24 +119,43 @@ document.getElementById("checkoutForm").addEventListener("submit", e => {
   showReceipt();
 });
 
-
 function showReceipt() {
   const t = computeTotals();
   const id = `ORD-2026-${Math.floor(Math.random() * 100000)}`;
   const now = new Date().toLocaleString();
 
+  const form = document.getElementById("checkoutForm");
+  const fullName = form.querySelector('input[type="text"]').value;
+  const email = form.querySelector('input[type="email"]').value;
+  const payment = form.querySelector('select').value;
+  const deliveryMethod = document.getElementById("delivery").value;
+  const address = form.querySelector('textarea') ? form.querySelector('textarea').value : "";
+
   document.getElementById("receiptContent").innerHTML = `
-    <h4>Order Receipt</h4>
-    <p><strong>Order ID:</strong> ${id}<br>
-    <strong>Date:</strong> ${now}</p>
-    <hr>
-    ${cart.map(i => `<p>${i.name} × ${i.qty} — ₱${(i.price * i.qty).toFixed(2)}</p>`).join("")}
-    <hr>
-    <p>Subtotal: ₱${t.subtotal.toFixed(2)}</p>
-    <p>Discount: −₱${t.discount.toFixed(2)}</p>
-    <p>Shipping: ₱${t.shipping.toFixed(2)}</p>
-    <p>Tax: ₱${t.tax.toFixed(2)}</p>
-    <h5>Total: ₱${t.total.toFixed(2)}</h5>
+    <h4 class="mb-3">Order Receipt</h4>
+    <p><strong>Order ID:</strong> ${id}<br><strong>Date:</strong> ${now}</p>
+
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Customer Information</h5>
+        <p>
+          <strong>Name:</strong> ${fullName}<br>
+          <strong>Email:</strong> ${email}<br>
+          <strong>Payment Method:</strong> ${payment}<br>
+          <strong>Delivery Method:</strong> ${deliveryMethod}${deliveryMethod === 'Delivery' ? `<br><strong>Address:</strong> ${address}` : ''}
+        </p>
+      </div>
+      <div class="col-md-6">
+        <h5>Order Items</h5>
+        ${cart.map(i => `<p>${i.name} × ${i.qty} — ₱${(i.price * i.qty).toFixed(2)}</p>`).join("")}
+        <hr>
+        <p>Subtotal: ₱${t.subtotal.toFixed(2)}</p>
+        <p>Discount: −₱${t.discount.toFixed(2)}</p>
+        <p>Shipping: ₱${t.shipping.toFixed(2)}</p>
+        <p>Tax: ₱${t.tax.toFixed(2)}</p>
+        <h5>Total: ₱${t.total.toFixed(2)}</h5>
+      </div>
+    </div>
   `;
 
   new bootstrap.Modal(document.getElementById("receiptModal")).show();
